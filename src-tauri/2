@@ -1,0 +1,12 @@
+
+up to date, audited 497 packages in 2s
+
+100 packages are looking for funding
+  run `npm fund` for details
+
+20 vulnerabilities (1 low, 6 moderate, 12 high, 1 critical)
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
