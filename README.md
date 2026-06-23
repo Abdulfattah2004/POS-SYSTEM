@@ -1,73 +1,122 @@
-# Welcome to your Lovable project
+# Project Name
 
-## Project info
+A modern web application built with React, TypeScript, Vite, Tailwind CSS, and shadcn/ui.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Overview
 
-## How can I edit this code?
+This project is designed to provide a fast, responsive, and user-friendly web experience. It uses a modern frontend stack with reusable components, clean styling, and efficient development tooling.
 
-There are several ways of editing your application.
+## Technologies Used
 
-**Use Lovable**
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* shadcn/ui
+* npm
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+Make sure you have Node.js and npm installed on your machine.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+You can check by running:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```bash
+node -v
+npm -v
+```
 
-Follow these steps:
+## Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+Clone the repository:
+
+```bash
 git clone <YOUR_GIT_URL>
+```
 
-# Step 2: Navigate to the project directory.
+Navigate to the project directory:
+
+```bash
 cd <YOUR_PROJECT_NAME>
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+Install dependencies:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+npm install
+```
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+http://localhost:5173
+```
 
-**Use GitHub Codespaces**
+## Available Scripts
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+npm run dev
+```
 
-## What technologies are used for this project?
+Runs the app in development mode.
 
-This project is built with:
+```bash
+npm run build
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Builds the project for production.
 
-## How can I deploy this project?
+```bash
+npm run preview
+```
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Previews the production build locally.
 
-## Can I connect a custom domain to my Lovable project?
+```bash
+npm run lint
+```
 
-Yes, you can!
+Runs linting to check code quality.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Project Structure
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```bash
+src/
+├── components/
+├── pages/
+├── hooks/
+├── lib/
+├── assets/
+└── main.tsx
+```
+
+## Features
+
+* Responsive user interface
+* Reusable UI components
+* Type-safe development with TypeScript
+* Modern styling with Tailwind CSS
+* Fast development and build process using Vite
+* Clean and maintainable project structure
+
+## Deployment
+
+To create a production build, run:
+
+```bash
+npm run build
+```
+
+The output will be generated in the `dist` folder and can be deployed to platforms such as Vercel, Netlify, or any static hosting provider.
+
+## License
+
+This project is for personal or commercial use.
