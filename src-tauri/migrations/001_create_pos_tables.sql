@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS products (
     name TEXT NOT NULL,
     stockQuantity INTEGER NOT NULL,
     purchasePrice REAL NOT NULL,
-    salePrice REAL NOT NULL
+    salePrice REAL NOT NULL,
+    synced INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS sales (
@@ -23,7 +24,8 @@ CREATE TABLE IF NOT EXISTS sales (
     exchangeRate REAL NOT NULL,
     cashierName TEXT NOT NULL,
     date TEXT NOT NULL,
-    refunded INTEGER NOT NULL DEFAULT 0
+    refunded INTEGER NOT NULL DEFAULT 0,
+    synced INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS sale_items (
@@ -35,7 +37,8 @@ CREATE TABLE IF NOT EXISTS sale_items (
     quantity INTEGER NOT NULL,
     salePrice REAL NOT NULL,
     purchasePrice REAL NOT NULL,
-    currency TEXT NOT NULL
+    currency TEXT NOT NULL,
+    synced INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS refunds (
@@ -44,7 +47,8 @@ CREATE TABLE IF NOT EXISTS refunds (
     totalRefunded REAL NOT NULL,
     currency TEXT NOT NULL,
     date TEXT NOT NULL,
-    cashierName TEXT NOT NULL
+    cashierName TEXT NOT NULL,
+    synced INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS refund_items (
@@ -56,7 +60,8 @@ CREATE TABLE IF NOT EXISTS refund_items (
     quantity INTEGER NOT NULL,
     salePrice REAL NOT NULL,
     purchasePrice REAL NOT NULL,
-    currency TEXT NOT NULL
+    currency TEXT NOT NULL,
+    synced INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS inventory_entries (
@@ -68,7 +73,8 @@ CREATE TABLE IF NOT EXISTS inventory_entries (
     purchasePrice REAL NOT NULL,
     salePrice REAL NOT NULL,
     salesmanName TEXT NOT NULL,
-    date TEXT NOT NULL
+    date TEXT NOT NULL,
+    synced INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS settings (

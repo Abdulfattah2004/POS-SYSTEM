@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Project Name
 
 A modern web application built with React, TypeScript, Vite, Tailwind CSS, and shadcn/ui.
@@ -120,3 +121,6 @@ The output will be generated in the `dist` folder and can be deployed to platfor
 ## License
 
 This project is for personal or commercial use.
+=======
+# POS-SYSTEM
+>>>>>>> 992e5d2a4249793c69fef5025a9b3dc0d3bf2626
