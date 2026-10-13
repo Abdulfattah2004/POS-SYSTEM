@@ -23,6 +23,9 @@ jobs:
       VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
       VITE_POS_SYNC_ENABLED: 'true'
       VITE_POS_BUILD_CHANNEL: unverified-test-candidate
+      SUPABASE_DB_PASSWORD: ''
+      SUPABASE_SERVICE_ROLE_KEY: ''
+      PGPASSWORD: ''
     steps:
       - name: Checkout selected dedicated branch
         uses: actions/checkout@v5
