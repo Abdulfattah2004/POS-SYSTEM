@@ -10,13 +10,14 @@ export interface FinancialEvent {id:string;original_id:string;kind:'sale'|'refun
 export interface FinancialItem {id:string;sale_id:string;product_id:string;product_name:string;quantity:number;sale_price:number;purchase_price:number;cost:number;branch_id:string;business_id:string;date:string}
 export function normalizeSnapshot(raw:unknown,businessId:string,branchIds:string[]) {
  const data=snapshot.parse(raw); const allowed=new Set(branchIds);
- const inScope=(row:{business_id:string;branch_id:string})=>row.business_id===businessId&&allowed.has(row.branch_id);
+ const inScope=(row:{business_id?:string;branch_id?:string})=>row.business_id===businessId&&typeof row.branch_id==='string'&&allowed.has(row.branch_id);
  if([...data.products,...data.sales,...data.refunds].some(row=>!inScope(row))) throw new Error('Financial snapshot scope mismatch');
  const events:FinancialEvent[]=[]; const items:FinancialItem[]=[]; const seen=new Set<string>();
  for(const row of [...data.sales.map(row=>({...row,kind:'sale' as const})),...data.refunds.map(row=>({...row,kind:'refund' as const}))]) {
   const r=row.record;const kind=row.kind;const sign=kind==='sale'?1:-1;
   if(new Set(r.items.map(i=>i.productId)).size!==r.items.length)throw new Error('Duplicate financial item');
-  const amount='total' in r?r.total:r.totalRefunded;
+  const amount='total' in r?r.total:'totalRefunded' in r?r.totalRefunded:undefined;
+  if(typeof amount!=='number')throw new Error('Financial snapshot amount missing');
   const subtotal=Math.round(r.items.reduce((n,i)=>n+i.quantity*i.salePrice,0)*100)/100;
   const expected=r.currency==='USD'?subtotal:Math.round(subtotal*r.exchangeRate);
   if(Math.abs(amount-expected)>0.000001 || ('subtotal' in r&&Math.abs(r.subtotal-subtotal)>0.000001)) throw new Error('Financial snapshot total mismatch');
