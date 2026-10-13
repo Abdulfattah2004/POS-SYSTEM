@@ -15,10 +15,12 @@ $database = $installer.OpenDatabase($sourceMsi, 0)
 function Read-MsiProperty([object]$Db, [string]$Name) {
   $query = "SELECT ``Value`` FROM ``Property`` WHERE ``Property``='$Name'"
   $view = $Db.OpenView($query)
-  $view.Execute()
+  $null = $view.Execute()
   $record = $view.Fetch()
   if ($null -eq $record) { throw "MSI property $Name is missing." }
-  return $record.StringData(1)
+  $value = $record.StringData(1)
+  if ([string]::IsNullOrWhiteSpace($value)) { throw "MSI property $Name is empty." }
+  return $value.Trim()
 }
 $msiVersion = Read-MsiProperty $database 'ProductVersion'
 $upgradeCode = Read-MsiProperty $database 'UpgradeCode'
@@ -26,7 +28,7 @@ if ($msiVersion -ne $version) { throw "MSI version mismatch: $msiVersion" }
 if ($upgradeCode.TrimStart('{').TrimEnd('}').ToLowerInvariant() -ne $expectedUpgrade) { throw 'Built MSI UpgradeCode mismatch.' }
 
 $fileView = $database.OpenView('SELECT `FileName` FROM `File`')
-$fileView.Execute()
+$null = $fileView.Execute()
 $hasExecutable = $false
 while ($record = $fileView.Fetch()) {
   $fileName = $record.StringData(1).Split('|')[-1]
