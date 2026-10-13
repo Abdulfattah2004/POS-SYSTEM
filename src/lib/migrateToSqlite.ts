@@ -1,155 +1,42 @@
-import { getDb } from "./sqlStore";
+import { invoke } from '@tauri-apps/api/core';
 
-function getLocal<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
+function records(key: string): unknown[] {
+  const raw = localStorage.getItem(key);
+  if (raw === null) return [];
+  const value: unknown = JSON.parse(raw);
+  if (!Array.isArray(value)) throw new Error(`Invalid legacy data in ${key}; original data retained`);
+  return value;
 }
 
-function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-}
-
-export async function migrateLocalStorageToSqlite() {
-  const db = await getDb();
-
-  const alreadyMigrated = localStorage.getItem("pos_migrated_to_sqlite");
-
-  if (alreadyMigrated === "true") {
-    return;
+export async function migrateLocalStorageToSqlite(): Promise<boolean> {
+  const alreadyMigrated = localStorage.getItem('pos_migrated_to_sqlite') === 'true';
+  const rawRate = alreadyMigrated ? null : localStorage.getItem('pos_exchange_rate');
+  const exchangeRate: unknown = rawRate === null ? null : JSON.parse(rawRate);
+  if (exchangeRate !== null && (typeof exchangeRate !== 'number' || !Number.isFinite(exchangeRate) || exchangeRate <= 0)) {
+    throw new Error('Invalid legacy exchange rate; original data retained');
   }
-
-  const products = getLocal<any[]>("pos_products", []);
-  const sales = getLocal<any[]>("pos_sales", []);
-  const users = getLocal<any[]>("pos_users", []);
-  const refunds = getLocal<any[]>("pos_refunds", []);
-  const inventoryEntries = getLocal<any[]>("pos_inventory_entries", []);
-  const exchangeRate = getLocal<number>("pos_exchange_rate", 89500);
-
-  for (const user of users) {
-    await db.execute(
-      `INSERT OR IGNORE INTO users (id, username, password, role, name)
-       VALUES (?, ?, ?, ?, ?)`,
-      [user.id, user.username, user.password, user.role, user.name]
-    );
-  }
-
-  for (const product of products) {
-    await db.execute(
-      `INSERT OR REPLACE INTO products 
-       (id, barcode, name, stockQuantity, purchasePrice, salePrice, synced)
-       VALUES (?, ?, ?, ?, ?, ?, 0)`,
-      [
-        product.id,
-        product.barcode,
-        product.name,
-        Number(product.stockQuantity ?? 0),
-        Number(product.purchasePrice ?? 0),
-        Number(product.salePrice ?? 0),
-      ]
-    );
-  }
-
-  for (const sale of sales) {
-    await db.execute(
-      `INSERT OR IGNORE INTO sales 
-       (id, subtotal, total, currency, exchangeRate, cashierName, date, refunded, synced)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-      [
-        sale.id,
-        Number(sale.subtotal ?? 0),
-        Number(sale.total ?? 0),
-        sale.currency,
-        Number(sale.exchangeRate ?? 89500),
-        sale.cashierName ?? "",
-        sale.date,
-        sale.refunded ? 1 : 0,
-      ]
-    );
-
-    for (const item of sale.items || []) {
-      await db.execute(
-        `INSERT OR IGNORE INTO sale_items
-         (id, saleId, productId, productName, barcode, quantity, salePrice, purchasePrice, currency, synced)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-        [
-          generateId(),
-          sale.id,
-          item.productId,
-          item.productName,
-          item.barcode,
-          Number(item.quantity ?? 0),
-          Number(item.salePrice ?? 0),
-          Number(item.purchasePrice ?? 0),
-          item.currency,
-        ]
-      );
+  // A single native connection owns the transaction and durable marker.
+  // Transactions across separate plugin-sql pooled calls are unsafe.
+  const needsAdmin = await invoke<boolean>('initialize_database', {
+    legacy: {
+      alreadyMigrated,
+      users: alreadyMigrated ? [] : records('pos_users'),
+      products: alreadyMigrated ? [] : records('pos_products'),
+      sales: alreadyMigrated ? [] : records('pos_sales'),
+      refunds: alreadyMigrated ? [] : records('pos_refunds'),
+      inventoryEntries: alreadyMigrated ? [] : records('pos_inventory_entries'),
+      exchangeRate,
+    },
+  });
+  // Retain all original data; record success only after native commit.
+  // SQLite's own import marker is authoritative. A full legacy Web Storage
+  // must not prevent startup AFTER the native transaction was committed.
+  if (!alreadyMigrated) {
+    try { localStorage.setItem('pos_migrated_to_sqlite', 'true'); }
+    catch (error) {
+      if (!(error instanceof DOMException) || error.name !== 'QuotaExceededError') throw error;
+      console.warn('Legacy Web Storage is full; native SQLite import is committed and originals are retained.');
     }
   }
-
-  for (const refund of refunds) {
-    await db.execute(
-      `INSERT OR IGNORE INTO refunds 
-       (id, saleId, totalRefunded, currency, date, cashierName, synced)
-       VALUES (?, ?, ?, ?, ?, ?, 0)`,
-      [
-        refund.id,
-        refund.saleId,
-        Number(refund.totalRefunded ?? 0),
-        refund.currency,
-        refund.date,
-        refund.cashierName ?? "",
-      ]
-    );
-
-    for (const item of refund.items || []) {
-      await db.execute(
-        `INSERT OR IGNORE INTO refund_items
-         (id, refundId, productId, productName, barcode, quantity, salePrice, purchasePrice, currency, synced)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-        [
-          generateId(),
-          refund.id,
-          item.productId,
-          item.productName ?? "",
-          item.barcode ?? "",
-          Number(item.quantity ?? 0),
-          Number(item.salePrice ?? 0),
-          Number(item.purchasePrice ?? 0),
-          item.currency ?? refund.currency,
-        ]
-      );
-    }
-  }
-
-  for (const entry of inventoryEntries) {
-    await db.execute(
-      `INSERT OR IGNORE INTO inventory_entries
-       (id, productId, productName, barcode, quantityAdded, purchasePrice, salePrice, salesmanName, date, synced)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-      [
-        entry.id,
-        entry.productId ?? "",
-        entry.productName,
-        entry.barcode,
-        Number(entry.quantityAdded ?? 0),
-        Number(entry.purchasePrice ?? 0),
-        Number(entry.salePrice ?? 0),
-        entry.salesmanName ?? "",
-        entry.date,
-      ]
-    );
-  }
-
-  await db.execute(
-    `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`,
-    ["exchange_rate", String(exchangeRate)]
-  );
-
-  localStorage.setItem("pos_migrated_to_sqlite", "true");
-
-  console.log("Migration to SQLite completed successfully");
+  return needsAdmin;
 }

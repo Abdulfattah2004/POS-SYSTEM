@@ -1,0 +1,808 @@
+{
+  "columns": [
+    {
+      "type": "uuid",
+      "table": "branch_devices",
+      "column": "id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "branch_devices",
+      "column": "branch_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "branch_devices",
+      "column": "device_name",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "branch_devices",
+      "column": "device_token",
+      "nullable": false
+    },
+    {
+      "type": "boolean",
+      "table": "branch_devices",
+      "column": "is_active",
+      "nullable": true
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "branch_devices",
+      "column": "created_at",
+      "nullable": true
+    },
+    {
+      "type": "uuid",
+      "table": "branches",
+      "column": "id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "branches",
+      "column": "business_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "branches",
+      "column": "name",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "branches",
+      "column": "address",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "branches",
+      "column": "phone",
+      "nullable": true
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "branches",
+      "column": "created_at",
+      "nullable": true
+    },
+    {
+      "type": "uuid",
+      "table": "businesses",
+      "column": "id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "businesses",
+      "column": "owner_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "businesses",
+      "column": "name",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "businesses",
+      "column": "phone",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "businesses",
+      "column": "email",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "businesses",
+      "column": "logo_url",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "businesses",
+      "column": "subscription_plan",
+      "nullable": true
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "businesses",
+      "column": "created_at",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "businesses",
+      "column": "license_type",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "businesses",
+      "column": "license_status",
+      "nullable": true
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "businesses",
+      "column": "license_expires_at",
+      "nullable": true
+    },
+    {
+      "type": "boolean",
+      "table": "businesses",
+      "column": "lifetime_access",
+      "nullable": true
+    },
+    {
+      "type": "uuid",
+      "table": "categories",
+      "column": "id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "categories",
+      "column": "business_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "categories",
+      "column": "name",
+      "nullable": false
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "categories",
+      "column": "created_at",
+      "nullable": true
+    },
+    {
+      "type": "uuid",
+      "table": "customers",
+      "column": "id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "customers",
+      "column": "business_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "customers",
+      "column": "name",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "customers",
+      "column": "phone",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "customers",
+      "column": "email",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "customers",
+      "column": "address",
+      "nullable": true
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "customers",
+      "column": "created_at",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "inventory_entries",
+      "column": "id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "inventory_entries",
+      "column": "business_id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "inventory_entries",
+      "column": "branch_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "inventory_entries",
+      "column": "product_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "inventory_entries",
+      "column": "product_name",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "inventory_entries",
+      "column": "barcode",
+      "nullable": false
+    },
+    {
+      "type": "integer",
+      "table": "inventory_entries",
+      "column": "quantity_added",
+      "nullable": false
+    },
+    {
+      "type": "numeric",
+      "table": "inventory_entries",
+      "column": "purchase_price",
+      "nullable": false
+    },
+    {
+      "type": "numeric",
+      "table": "inventory_entries",
+      "column": "sale_price",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "inventory_entries",
+      "column": "salesman_name",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "inventory_entries",
+      "column": "date",
+      "nullable": false
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "inventory_entries",
+      "column": "synced_at",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "products",
+      "column": "id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "products",
+      "column": "business_id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "products",
+      "column": "branch_id",
+      "nullable": true
+    },
+    {
+      "type": "uuid",
+      "table": "products",
+      "column": "category_id",
+      "nullable": true
+    },
+    {
+      "type": "uuid",
+      "table": "products",
+      "column": "supplier_id",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "products",
+      "column": "barcode",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "products",
+      "column": "name",
+      "nullable": false
+    },
+    {
+      "type": "numeric",
+      "table": "products",
+      "column": "cost",
+      "nullable": true
+    },
+    {
+      "type": "numeric",
+      "table": "products",
+      "column": "price",
+      "nullable": false
+    },
+    {
+      "type": "integer",
+      "table": "products",
+      "column": "stock",
+      "nullable": true
+    },
+    {
+      "type": "integer",
+      "table": "products",
+      "column": "minimum_stock",
+      "nullable": true
+    },
+    {
+      "type": "boolean",
+      "table": "products",
+      "column": "is_active",
+      "nullable": true
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "products",
+      "column": "created_at",
+      "nullable": true
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "products",
+      "column": "updated_at",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "refund_items",
+      "column": "id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "refund_items",
+      "column": "refund_id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "refund_items",
+      "column": "business_id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "refund_items",
+      "column": "branch_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "refund_items",
+      "column": "product_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "refund_items",
+      "column": "product_name",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "refund_items",
+      "column": "barcode",
+      "nullable": false
+    },
+    {
+      "type": "integer",
+      "table": "refund_items",
+      "column": "quantity",
+      "nullable": false
+    },
+    {
+      "type": "numeric",
+      "table": "refund_items",
+      "column": "sale_price",
+      "nullable": false
+    },
+    {
+      "type": "numeric",
+      "table": "refund_items",
+      "column": "purchase_price",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "refund_items",
+      "column": "currency",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "refunds",
+      "column": "id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "refunds",
+      "column": "business_id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "refunds",
+      "column": "branch_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "refunds",
+      "column": "sale_id",
+      "nullable": false
+    },
+    {
+      "type": "numeric",
+      "table": "refunds",
+      "column": "total_refunded",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "refunds",
+      "column": "currency",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "refunds",
+      "column": "date",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "refunds",
+      "column": "cashier_name",
+      "nullable": false
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "refunds",
+      "column": "synced_at",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "sale_items",
+      "column": "id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "sale_items",
+      "column": "sale_id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "sale_items",
+      "column": "business_id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "sale_items",
+      "column": "branch_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "sale_items",
+      "column": "product_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "sale_items",
+      "column": "product_name",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "sale_items",
+      "column": "barcode",
+      "nullable": false
+    },
+    {
+      "type": "integer",
+      "table": "sale_items",
+      "column": "quantity",
+      "nullable": false
+    },
+    {
+      "type": "numeric",
+      "table": "sale_items",
+      "column": "sale_price",
+      "nullable": false
+    },
+    {
+      "type": "numeric",
+      "table": "sale_items",
+      "column": "purchase_price",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "sale_items",
+      "column": "currency",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "sales",
+      "column": "id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "sales",
+      "column": "business_id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "sales",
+      "column": "branch_id",
+      "nullable": false
+    },
+    {
+      "type": "numeric",
+      "table": "sales",
+      "column": "subtotal",
+      "nullable": false
+    },
+    {
+      "type": "numeric",
+      "table": "sales",
+      "column": "total",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "sales",
+      "column": "currency",
+      "nullable": false
+    },
+    {
+      "type": "numeric",
+      "table": "sales",
+      "column": "exchange_rate",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "sales",
+      "column": "cashier_name",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "sales",
+      "column": "date",
+      "nullable": false
+    },
+    {
+      "type": "boolean",
+      "table": "sales",
+      "column": "refunded",
+      "nullable": true
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "sales",
+      "column": "synced_at",
+      "nullable": true
+    },
+    {
+      "type": "uuid",
+      "table": "suppliers",
+      "column": "id",
+      "nullable": false
+    },
+    {
+      "type": "uuid",
+      "table": "suppliers",
+      "column": "business_id",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "suppliers",
+      "column": "name",
+      "nullable": false
+    },
+    {
+      "type": "text",
+      "table": "suppliers",
+      "column": "phone",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "suppliers",
+      "column": "email",
+      "nullable": true
+    },
+    {
+      "type": "text",
+      "table": "suppliers",
+      "column": "address",
+      "nullable": true
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "suppliers",
+      "column": "created_at",
+      "nullable": true
+    }
+  ],
+  "triggers": null,
+  "functions": null,
+  "constraints": [
+    {
+      "table": "businesses",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table": "businesses",
+      "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "branches",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table": "branches",
+      "definition": "FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "branch_devices",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table": "branch_devices",
+      "definition": "UNIQUE (device_token)"
+    },
+    {
+      "table": "branch_devices",
+      "definition": "FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "categories",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table": "categories",
+      "definition": "FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "suppliers",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table": "suppliers",
+      "definition": "FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "customers",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table": "customers",
+      "definition": "FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "products",
+      "definition": "FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "products",
+      "definition": "FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "products",
+      "definition": "FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "products",
+      "definition": "FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL"
+    },
+    {
+      "table": "sales",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table": "sales",
+      "definition": "FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "sales",
+      "definition": "FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "sale_items",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table": "sale_items",
+      "definition": "FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "sale_items",
+      "definition": "FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "sale_items",
+      "definition": "FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "refunds",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table": "refunds",
+      "definition": "FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "refunds",
+      "definition": "FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "refund_items",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table": "refund_items",
+      "definition": "FOREIGN KEY (refund_id) REFERENCES refunds(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "refund_items",
+      "definition": "FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "refund_items",
+      "definition": "FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "inventory_entries",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table": "inventory_entries",
+      "definition": "FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "inventory_entries",
+      "definition": "FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE"
+    },
+    {
+      "table": "products",
+      "definition": "PRIMARY KEY (id)"
+    }
+  ]
+}

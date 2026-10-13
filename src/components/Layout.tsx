@@ -1,4 +1,6 @@
-import { ReactNode } from 'react';
+import { getLocalState, subscribeLocalState, scopeKey } from '@/lib/localDatabase';
+import { toast } from '@/lib/notifications';
+import { useSyncExternalStore, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -9,7 +11,7 @@ const navItems = [
   { path: '/pos', label: 'Point of Sale', icon: ShoppingCart, roles: ['admin', 'cashier'] },
   { path: '/inventory', label: 'Inventory', icon: Package, roles: ['admin'] },
   { path: '/inventory-entry', label: 'Add Inventory', icon: PackagePlus, roles: ['admin'] },
-  { path: '/receipts', label: 'Receipts', icon: Receipt, roles: ['admin'] },
+  { path: '/receipts', label: 'Receipts', icon: Receipt, roles: ['admin', 'cashier'] },
   { path: '/refunds', label: 'Refunds', icon: RotateCcw, roles: ['admin', 'cashier'] },
   { path: '/daily-movement', label: 'Daily Movement', icon: TrendingUp, roles: ['admin'] },
   { path: '/salesmen', label: 'Salesmen', icon: Users, roles: ['admin'] },
@@ -19,7 +21,9 @@ const navItems = [
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {
-  const { user, logout, isAdmin } = useAuth();
+  useSyncExternalStore(subscribeLocalState, () => getLocalState().revision);
+  const state = getLocalState();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -30,7 +34,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside className="w-60 flex-shrink-0 bg-sidebar flex flex-col">
         <div className="px-5 py-5 border-b border-sidebar-border">
-          <h1 className="text-xl font-bold text-sidebar-primary-foreground tracking-tight">SuperMarket</h1>
+          <h1 className="text-xl font-bold text-sidebar-primary-foreground tracking-tight">Swift Till</h1>
           <p className="text-xs text-sidebar-muted mt-0.5">Point of Sale System</p>
         </div>
 
@@ -60,7 +64,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <p className="text-xs text-sidebar-muted capitalize">{user?.role}</p>
           </div>
           <button
-            onClick={() => { logout(); navigate('/login'); }}
+            onClick={async () => { try { await logout(); } catch (error) { toast.error(String(error)); } finally { navigate('/login'); } }}
             className="pos-sidebar-item w-full text-sidebar-foreground hover:bg-sidebar-accent/50"
           >
             <LogOut size={18} />
@@ -71,7 +75,9 @@ export default function Layout({ children }: { children: ReactNode }) {
 
       {/* Main */}
       <main className="flex-1 overflow-auto bg-background">
-        {children}
+        {/* Keep the save form mounted through its durable write/readback. Other
+            pages still reset branch-specific carts and views on scope changes. */}
+        <div key={location.pathname === '/settings' ? 'connection-settings' : scopeKey(state.association)} className="h-full">{children}</div>
       </main>
     </div>
   );

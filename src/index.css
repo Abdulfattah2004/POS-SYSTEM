@@ -1,8 +1,14 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss" source(none);
+@config "../tailwind.config.ts";
+@source "./";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* Retain v3 layout aliases used by existing POS components. */
+@utility flex-shrink-0 { flex-shrink: 0; }
+@utility flex-grow { flex-grow: 1; }
+@utility rounded { border-radius: 0.25rem; }
+@utility outline-none { outline: 2px solid transparent; outline-offset: 2px; }
+@theme { --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+
 
 @layer base {
   :root {

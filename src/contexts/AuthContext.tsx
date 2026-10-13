@@ -1,54 +1,46 @@
+import { subscribeLocalState } from '@/lib/localDatabase';
+import PasswordRotation from '@/components/PasswordRotation';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '@/types/pos';
-import { loginSql } from '@/lib/sqlStore';
+import { login as storeLogin, getCurrentUser, logout as storeLogout, initializeStore } from '@/lib/store';
 
 interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-function getCurrentUser(): User | null {
-  try {
-    const raw = localStorage.getItem('pos_current_user');
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function setCurrentUser(user: User | null) {
-  localStorage.setItem('pos_current_user', JSON.stringify(user));
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [ready, setReady] = useState(false);
+  const [failure, setFailure] = useState('');
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const saved = getCurrentUser();
-    if (saved) setUser(saved);
+    let mounted = true;
+    void initializeStore().then(() => { if (mounted) { setUser(getCurrentUser()); setReady(true); } }).catch(error => { if (mounted) setFailure(error instanceof Error ? error.message : String(error)); });
+    return () => { mounted = false; };
   }, []);
 
+  useEffect(() => subscribeLocalState(() => { setUser(getCurrentUser()); }), []);
+
   const login = async (username: string, password: string): Promise<boolean> => {
-    const found = await loginSql(username, password);
-
-    if (found) {
-      setUser(found);
-      setCurrentUser(found);
-      return true;
-    }
-
-    return false;
-  };
-
-  const logout = () => {
     setUser(null);
-    setCurrentUser(null);
+    const found = await storeLogin(username, password);
+    setUser(found);
+    return Boolean(found);
   };
 
+  const logout = async () => {
+    setUser(null);
+    await storeLogout();
+  };
+
+  if (failure) return <div role="alert" className="p-6">POS could not open its local database: {failure}. Original data has been preserved.</div>;
+  if (!ready) return <div role="status" className="p-6">Opening local POS database…</div>;
+  if (user?.requiresPasswordChange) return <PasswordRotation onComplete={logout} />;
   return (
     <AuthContext.Provider value={{ user, login, logout, isAdmin: user?.role === 'admin' }}>
       {children}

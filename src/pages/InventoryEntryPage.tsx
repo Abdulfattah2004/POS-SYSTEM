@@ -1,11 +1,16 @@
-import { useState } from 'react';
-import { getTodayStr } from '@/lib/store';
-import { addInventoryEntrySql } from '@/lib/sqlStore';
+import { useState, useRef } from 'react';
+import { addInventoryEntry, getTodayStr, createTransactionId } from '@/lib/store';
 import { useAuth } from '@/contexts/AuthContext';
 import { PackagePlus } from 'lucide-react';
-import { toast } from 'sonner';
+import { useActionFeedback } from '@/hooks/useActionFeedback';
+import { syncPendingInventory } from '@/lib/inventorySync';
+import {useDurableOperation} from '@/hooks/useDurableOperation';
 
 export default function InventoryEntryPage() {
+  const { toast, feedback } = useActionFeedback();
+  const busy = useRef(false);
+  const [saving, setSaving] = useState(false);
+  const operation=useDurableOperation('inventory',addInventoryEntry);
   const { user } = useAuth();
   const [form, setForm] = useState({
     productName: '',
@@ -18,41 +23,38 @@ export default function InventoryEntryPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!form.productName || !form.barcode || !form.quantityAdded || !form.purchasePrice || !form.salePrice) {
+    if (busy.current) return;
+    if (!operation.pending && (!form.productName || !form.barcode || !form.quantityAdded || !form.purchasePrice || !form.salePrice)) {
       toast.error('Please fill all required fields');
       return;
     }
 
+    busy.current = true; setSaving(true);
     try {
-      await addInventoryEntrySql({
-        productId: '',
-        productName: form.productName,
-        barcode: form.barcode,
-        quantityAdded: Number(form.quantityAdded),
-        purchasePrice: Number(form.purchasePrice),
-        salePrice: Number(form.salePrice),
-        salesmanName: form.salesmanName || user?.name || '',
-        date: new Date().toISOString(),
-      });
+    const payload=operation.pending?.payload ?? {
+      productId: '',
+      productName: form.productName,
+      barcode: form.barcode,
+      quantityAdded: Number(form.quantityAdded),
+      purchasePrice: Number(form.purchasePrice),
+      salePrice: Number(form.salePrice),
+      salesmanName: form.salesmanName || user?.name || '',
+      date: new Date().toISOString(),
+    };
+    const entry = await operation.execute(payload);
 
-      toast.success(`Added ${form.quantityAdded}x ${form.productName} to inventory`);
-      setForm({
-        productName: '',
-        barcode: '',
-        quantityAdded: '',
-        purchasePrice: '',
-        salePrice: '',
-        salesmanName: '',
-      });
-    } catch (error) {
-      console.error('Failed to add inventory:', error);
-      alert('Failed to add inventory: ' + error);
+    const confirmed = await syncPendingInventory();
+    if (confirmed.includes(entry.id)) {
+      toast.success(`Added ${form.quantityAdded}x ${form.productName} and synced with Supabase`);
+    } else {
+      toast.info(`Saved ${form.quantityAdded}x ${form.productName} on this device; Supabase sync is pending`);
     }
+    setForm({ productName: '', barcode: '', quantityAdded: '', purchasePrice: '', salePrice: '', salesmanName: '' });
+    } catch (error) { toast.error(error instanceof Error ? error.message : String(error)); }
+    finally { busy.current = false; setSaving(false); }
   };
 
-  const update = (key: string, value: string) =>
-    setForm(f => ({ ...f, [key]: value }));
+  const update = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }));
 
   return (
     <div className="p-6 max-w-2xl">
@@ -61,7 +63,11 @@ export default function InventoryEntryPage() {
         <h2 className="pos-header">Add Inventory Entry</h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="pos-card p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="pos-card p-6">
+        {feedback}
+        {operation.error&&<p role="alert">{operation.error}</p>}
+        {operation.pending&&<div role="alert">A receipt needs confirmation. <button type="submit" disabled={saving} className="pos-btn-primary">Retry saved receipt</button></div>}
+        <fieldset disabled={saving || Boolean(operation.pending) || Boolean(operation.error)} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">Item Name *</label>
@@ -100,24 +106,12 @@ export default function InventoryEntryPage() {
         </div>
 
         <div className="flex gap-3 pt-2">
-          <button type="submit" className="pos-btn-primary">Add to Inventory</button>
-          <button
-            type="button"
-            className="pos-btn-secondary"
-            onClick={() =>
-              setForm({
-                productName: '',
-                barcode: '',
-                quantityAdded: '',
-                purchasePrice: '',
-                salePrice: '',
-                salesmanName: '',
-              })
-            }
-          >
+          <button type="submit" disabled={saving} className="pos-btn-primary">Add to Inventory</button>
+          <button type="button" className="pos-btn-secondary" onClick={() => setForm({ productName: '', barcode: '', quantityAdded: '', purchasePrice: '', salePrice: '', salesmanName: '' })}>
             Clear
           </button>
         </div>
+        </fieldset>
       </form>
     </div>
   );

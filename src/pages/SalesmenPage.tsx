@@ -1,28 +1,16 @@
 import { useState } from 'react';
-import { getInventoryEntries } from '@/lib/store';
+import { deleteInventoryEntry, getInventoryEntries, updateInventoryEntry } from '@/lib/store';
 import { useAuth } from '@/contexts/AuthContext';
 import { Users, Search, Pencil, Trash2 } from 'lucide-react';
 import { InventoryEntry } from '@/types/pos';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
-
-function updateInventoryEntry(id: string, updates: Partial<InventoryEntry>): void {
-  const entries = JSON.parse(localStorage.getItem('pos_inventory_entries') || '[]') as InventoryEntry[];
-  const idx = entries.findIndex(e => e.id === id);
-  if (idx >= 0) {
-    entries[idx] = { ...entries[idx], ...updates };
-    localStorage.setItem('pos_inventory_entries', JSON.stringify(entries));
-  }
-}
-
-function deleteInventoryEntry(id: string): void {
-  const entries = JSON.parse(localStorage.getItem('pos_inventory_entries') || '[]') as InventoryEntry[];
-  localStorage.setItem('pos_inventory_entries', JSON.stringify(entries.filter(e => e.id !== id)));
-}
+import { useActionFeedback } from '@/hooks/useActionFeedback';
+import { syncPendingInventory } from '@/lib/inventorySync';
 
 export default function SalesmenPage() {
+  const { toast, feedback } = useActionFeedback();
   const [search, setSearch] = useState('');
   const [entries, setEntries] = useState(() => getInventoryEntries());
   const [editEntry, setEditEntry] = useState<InventoryEntry | null>(null);
@@ -45,7 +33,7 @@ export default function SalesmenPage() {
     const d = new Date(e.date);
     setEditForm({
       salesmanName: e.salesmanName,
-      date: d.toISOString().split('T')[0],
+      date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
       time: d.toTimeString().slice(0, 5),
       quantityAdded: e.quantityAdded,
       purchasePrice: e.purchasePrice,
@@ -54,32 +42,43 @@ export default function SalesmenPage() {
     setEditEntry(e);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editEntry) return;
     if (editForm.quantityAdded <= 0) { toast.error('Quantity must be positive'); return; }
     if (editForm.purchasePrice < 0 || editForm.salePrice < 0) { toast.error('Prices must be valid'); return; }
     if (!editForm.date || !editForm.time) { toast.error('Date and time required'); return; }
     if (!editForm.salesmanName.trim()) { toast.error('Salesman name required'); return; }
 
+    try {
     const newDate = new Date(`${editForm.date}T${editForm.time}:00`).toISOString();
-    updateInventoryEntry(editEntry.id, {
+    const operationId = await updateInventoryEntry(editEntry.id, {
       salesmanName: editForm.salesmanName.trim(),
       date: newDate,
-      quantityAdded: editForm.quantityAdded,
-      purchasePrice: editForm.purchasePrice,
-      salePrice: editForm.salePrice,
     });
     setEditEntry(null);
     refresh();
-    toast.success('Record updated');
+    const confirmed = await syncPendingInventory();
+    if (operationId && confirmed.includes(operationId)) {
+      toast.success('Record updated and synced with Supabase');
+    } else {
+      toast.info('Record updated on this device; Supabase sync is pending');
+    }
+    } catch (error) { toast.error(String(error)); }
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteId) return;
-    deleteInventoryEntry(deleteId);
+    try {
+    const operationId = await deleteInventoryEntry(deleteId);
     setDeleteId(null);
     refresh();
-    toast.success('Record deleted');
+    const confirmed = await syncPendingInventory();
+    if (operationId && confirmed.includes(operationId)) {
+      toast.success('Record deleted and synced with Supabase');
+    } else {
+      toast.info('Record removed on this device; Supabase sync is pending');
+    }
+    } catch (error) { toast.error(String(error)); }
   };
 
   // Group by salesman
@@ -102,11 +101,12 @@ export default function SalesmenPage() {
           <h2 className="pos-header">Salesmen</h2>
         </div>
         <div className="relative w-72">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
           <input className="pos-input w-full pl-9" placeholder="Search salesman..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
       </div>
 
+      {feedback}
       {salesmenNames.length === 0 ? (
         <div className="pos-card p-12 text-center text-muted-foreground">No salesmen found</div>
       ) : salesmenNames.map(name => {
@@ -151,7 +151,7 @@ export default function SalesmenPage() {
                           <Button variant="ghost" size="icon" onClick={() => openEdit(e)} title="Edit">
                             <Pencil size={15} />
                           </Button>
-                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)} title="Delete">
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" disabled onClick={() => setDeleteId(e.id)} title="Delete">
                             <Trash2 size={15} />
                           </Button>
                         </div>
@@ -188,16 +188,16 @@ export default function SalesmenPage() {
             </div>
             <div>
               <label className="text-sm font-medium text-foreground">Quantity</label>
-              <Input type="number" min={1} value={editForm.quantityAdded} onChange={e => setEditForm(f => ({ ...f, quantityAdded: Number(e.target.value) }))} />
+              <Input type="number" disabled min={1} value={editForm.quantityAdded} onChange={e => setEditForm(f => ({ ...f, quantityAdded: Number(e.target.value) }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-sm font-medium text-foreground">Purchase Price</label>
-                <Input type="number" min={0} step="0.01" value={editForm.purchasePrice} onChange={e => setEditForm(f => ({ ...f, purchasePrice: Number(e.target.value) }))} />
+                <Input type="number" disabled min={0} step="0.01" value={editForm.purchasePrice} onChange={e => setEditForm(f => ({ ...f, purchasePrice: Number(e.target.value) }))} />
               </div>
               <div>
                 <label className="text-sm font-medium text-foreground">Sale Price</label>
-                <Input type="number" min={0} step="0.01" value={editForm.salePrice} onChange={e => setEditForm(f => ({ ...f, salePrice: Number(e.target.value) }))} />
+                <Input type="number" disabled min={0} step="0.01" value={editForm.salePrice} onChange={e => setEditForm(f => ({ ...f, salePrice: Number(e.target.value) }))} />
               </div>
             </div>
           </div>

@@ -1,0 +1,90 @@
+name: Windows unverified sync-enabled MSI
+
+on:
+  push:
+    branches:
+      - 'ci/windows-sync-candidate-*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: swift-till-unverified-msi-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-unverified-msi:
+    if: startsWith(github.ref, 'refs/heads/ci/windows-sync-candidate-')
+    runs-on: windows-2022
+    timeout-minutes: 90
+    env:
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+      VITE_POS_SYNC_ENABLED: 'true'
+      VITE_POS_BUILD_CHANNEL: unverified-test-candidate
+    steps:
+      - name: Checkout selected dedicated branch
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Set up Rust MSVC toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Validate candidate scope and public Supabase configuration
+        shell: pwsh
+        run: node scripts/verify-unverified-ci-config.mjs
+
+      - name: Install locked frontend dependencies
+        run: npm ci
+
+      - name: Run frontend tests
+        run: npm run test -- --maxWorkers=4
+
+      - name: Run Rust and SQLite tests
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Verify privileged-key build guard
+        run: npm run test:build-credentials
+
+      - name: Build frontend with synchronization enabled
+        run: npm run build
+
+      - name: Prepare unmistakably unverified installer branding
+        shell: pwsh
+        run: node scripts/prepare-unverified-ci-tauri-config.mjs
+
+      - name: Build MSI with normal WiX ICE validation
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $service = Get-Service -Name msiserver -ErrorAction Stop
+          if ($service.Status -ne 'Running') { Start-Service -Name msiserver }
+          if ((Get-Service -Name msiserver).Status -ne 'Running') { throw 'Windows Installer Service is unavailable; ICE validation cannot run.' }
+          npm run tauri -- build --bundles msi
+          if ($LASTEXITCODE -ne 0) { throw 'Tauri MSI build failed; do not disable WiX ICE validation.' }
+
+      - name: Inspect MSI identity and write SHA-256 manifest
+        shell: pwsh
+        run: ./scripts/package-unverified-ci-msi.ps1
+
+      - name: Upload unverified MSI candidate and evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: Swift-Till-UNVERIFIED-SYNC-MSI-${{ github.sha }}
+          path: ci-output/*
+          if-no-files-found: error
+          retention-days: 14

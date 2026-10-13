@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "POS",
-  "version": "0.2.2",
+  "version": "0.3.6",
   "identifier": "com.pos.dailys",
   "build": {
     "frontendDist": "../dist",
@@ -12,20 +12,32 @@
   "app": {
     "windows": [
       {
-        "title": "POS",
-        "width": 800,
-        "height": 600,
+        "title": "Swift Till",
+        "width": 1024,
+        "height": 768,
         "resizable": true,
         "fullscreen": false
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ncbyahoyhrbmunqkisuq.supabase.co wss://ncbyahoyhrbmunqkisuq.supabase.co http://ipc.localhost ipc:; object-src 'none'; base-uri 'self'; frame-src 'none'"
     }
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "resources": {
+      "runtime/windows/x64/vcruntime140.dll": "vcruntime140.dll",
+      "runtime/windows/x64/vcruntime140_1.dll": "vcruntime140_1.dll"
+    },
+    "targets": [
+      "msi",
+      "nsis"
+    ],
+    "windows": {
+      "wix": {
+        "upgradeCode": "3f4f99df-849f-5d73-9a7d-b7991d83bac5"
+      }
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

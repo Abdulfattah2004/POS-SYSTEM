@@ -16,8 +16,11 @@ export function useBarcodeScanner(onScan: (barcode: string) => void, enabled = t
     const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
     const isBarcodeInput = target.getAttribute('data-barcode-input') === 'true';
     
-    // Allow scanner detection on barcode inputs or when not focused on any input
-    if (isInput && !isBarcodeInput) return;
+    // Focused fields own their Enter event. Never process the same scan twice.
+    if (isInput || target.isContentEditable || e.defaultPrevented) {
+      buffer.current = '';
+      return;
+    }
 
     const now = Date.now();
     const timeDiff = now - lastKeyTime.current;
@@ -51,6 +54,9 @@ export function useBarcodeScanner(onScan: (barcode: string) => void, enabled = t
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (timeout.current) clearTimeout(timeout.current);
+    };
   }, [handleKeyDown]);
 }

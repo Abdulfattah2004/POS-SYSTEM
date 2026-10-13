@@ -1,5 +1,6 @@
-export async function getSetting(db: any, key: string) {
-  const rows = await db.select(
+import type Database from '@tauri-apps/plugin-sql';
+export async function getSetting(db: Database, key: string) {
+  const rows = await db.select<{value:string}[]>(
     "SELECT value FROM settings WHERE key = ?",
     [key]
   );
@@ -7,7 +8,7 @@ export async function getSetting(db: any, key: string) {
   return rows?.[0]?.value ?? null;
 }
 
-export async function setSetting(db: any, key: string, value: string) {
+export async function setSetting(db: Database, key: string, value: string) {
   await db.execute(
     "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
     [key, value]
